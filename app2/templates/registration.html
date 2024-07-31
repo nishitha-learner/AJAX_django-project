@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h2>Student Registration</h2>
+    <form id="studentForm" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Register</button>
+    </form>
+    <div id="result"></div>
+    <br>
+    <a href="{% url 'export_students_csv' %}">Export to CSV</a>
+    <br>
+    <a href="{% url 'export_students_pdf' %}">Export to PDF</a>
+
+    <script>
+        $(document).ready(function(){
+            $('#studentForm').on('submit', function(event){
+                event.preventDefault();
+                $.ajax({
+                    url: "{% url 'save_student' %}",
+                    method: "POST",
+                    data: $(this).serialize(),
+                    success: function(data){
+                        if(data.status === 'success'){
+                            $('#result').html('<p>Student registered successfully!</p>');
+                            $('#studentForm')[0].reset();
+                        } else {
+                            let errors = '<ul>';
+                            $.each(data.errors, function(key, value){
+                                errors += '<li>' + value[0].message + '</li>';
+                            });
+                            errors += '</ul>';
+                            $('#result').html(errors);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
